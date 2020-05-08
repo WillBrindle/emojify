@@ -19,12 +19,22 @@ const { argv } = require('yargs')
   .option('target-width', {
     alias: 'w'
   })
+  .options('text', {
+    alias: 't',
+    describe: 'output as text'
+  })
+  .options('output', {
+    alias: 'o',
+    describe: 'output file'
+  })
   .demandOption(['input', 'map', 'lookup']);
 
 const lookupImg = argv.lookup;
 const inputImg = argv.input;
 const emojiMap = JSON.parse(fs.readFileSync(argv.map));
 const targetWidth = argv['target-width'];
+const output = argv.output;
+const textOutput = argv.text;
 
 const FRAMES_FOLDER = `/tmp/frames`;
 const LOOKUP_SIZE = 2048;
@@ -116,26 +126,74 @@ const getEmojisForImage = async (img, targetWidth, lookupBuffer, emojiMap) => {
     inputs = [ inputImg ];
   }
 
-  let width = null, height = null;
+  let headerPrinted = false;
 
   await Promise.all(inputs.map(async (frame) => {
     const result = await getEmojisForImage(frame, targetWidth, lookupBuffer, emojiMap);
 
-    if (!width && !height) {
-      width = result.width;
-      height = result.height;
+    if (textOutput) {
+      // Just print out the unicode charaacter
+      const emojis = result.pixels.map(emoji => emoji.code.split(' ')
+          .map(str => {
+            return str.replace('U+', '&#x') + ';';
+          })
+          .join('')
+        );
 
-      console.log(width, height);
-    }
-
-    const emojis = result.pixels.map(emoji => emoji.code.split(' ')
-        .map(str => {
-          return str.replace('U+', '&#x') + ';';
+      if (!headerPrinted) {
+        console.log(result.width, result.height);
+        headerPrinted = true;
+      }
+      console.log(emojis.join(','));
+    } else {
+      // Create buffer
+      const finalWidth = result.width * 72;
+      const finalHeight = result.height * 72;
+      const buffer = await sharp({
+          create: {
+            width: finalWidth,
+            height: finalHeight,
+            channels: 4,
+            background: { r: 0, g: 0, b: 0, alpha: 0 }
+          }
         })
-        .join('')
-      );
+        .raw()
+        .toBuffer();
 
-    console.log(emojis.join(','));
+      // Generate resulting image
+      await Promise.all(result.pixels.map(async (emoji, ind) => {
+        const base64Data = emoji.img.replace(/^data:image\/png;base64,/, '');
+        const img = sharp(Buffer.from(base64Data, 'base64'))
+        //  .flatten( { background: '#ffffff' } );
+        const { width, height, channels } = await img.metadata();
+        const bufferIn = await img
+          .raw()
+          .toBuffer();
+
+        const cornerX = 72 * (ind % result.width);
+        const cornerY = 72 * (Math.floor(ind / result.width));
+        for (let i = 0; i < bufferIn.length; i += channels) {
+          const x = cornerX + (i / channels) % width;
+          const y = cornerY + Math.floor((i / channels) / width);
+
+          const pos = (x + y * finalWidth) * 4;
+          buffer[pos] = bufferIn[i];
+          buffer[pos + 1] = bufferIn[i + 1];
+          buffer[pos + 2] = bufferIn[i + 2];
+          buffer[pos + 3] = bufferIn[i + 3];
+        }
+      }));
+
+      sharp(buffer, {
+          raw: {
+            width: finalWidth,
+            height: finalHeight,
+            channels: 4
+          }
+        })
+        .png()
+        .toFile(output);
+    }
   }));
 
   if (cleanup) {
