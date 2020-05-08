@@ -5,7 +5,7 @@
 This project takes images/video input and gives you emojis out. For example;
 
 ![Van Gogh's 'Starry Night'](output/starry_night_small.png)
-![A still from 'Shrek'](output/shrek_small_small.png)
+![A still from 'Shrek'](output/shrek_small.png)
 
 ## Usage
 
