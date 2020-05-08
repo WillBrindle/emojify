@@ -99,9 +99,10 @@ const getEmojisForImage = async (img, targetWidth, lookupBuffer, emojiMap) => {
     .toBuffer();
 
   let inputs = [];
-  let cleanup = false;
+  let videoInput = false;
 
   if (inputImg.endsWith('.gif') || inputImg.endsWith('.mp4')) {
+    videoInput = true;
     // console.log('Decoding frames...');
     await new Promise((resolve, reject) => {
       ffmpeg(inputImg)
@@ -120,7 +121,8 @@ const getEmojisForImage = async (img, targetWidth, lookupBuffer, emojiMap) => {
     frames.sort();
 
     inputs = frames.map(frame => `${FRAMES_FOLDER}/${frame}`);
-    cleanup = true;
+
+    fs.mkdirSync(output);
   } else {
     // console.log('Using single image...')
     inputs = [ inputImg ];
@@ -128,7 +130,7 @@ const getEmojisForImage = async (img, targetWidth, lookupBuffer, emojiMap) => {
 
   let headerPrinted = false;
 
-  await Promise.all(inputs.map(async (frame) => {
+  await Promise.all(inputs.map(async (frame, frameInd) => {
     const result = await getEmojisForImage(frame, targetWidth, lookupBuffer, emojiMap);
 
     if (textOutput) {
@@ -184,6 +186,7 @@ const getEmojisForImage = async (img, targetWidth, lookupBuffer, emojiMap) => {
         }
       }));
 
+      const frameNumber = `${frameInd}`.padStart(5, '0');
       sharp(buffer, {
           raw: {
             width: finalWidth,
@@ -192,11 +195,11 @@ const getEmojisForImage = async (img, targetWidth, lookupBuffer, emojiMap) => {
           }
         })
         .png()
-        .toFile(output);
+        .toFile(videoInput ? `${output}/${frameNumber}.png` : output);
     }
   }));
 
-  if (cleanup) {
+  if (videoInput) {
     rimraf.sync(FRAMES_FOLDER);
   }
 })();
