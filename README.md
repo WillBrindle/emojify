@@ -2,12 +2,10 @@
 
 ## Overview
 
-This project takes images/video input and gives you emojis out.
+This project takes images/video input and gives you emojis out. For example;
 
-Input             |  Output
-:-------------------------:|:-------------------------
-![](input/starry_night.jpg)  |  ![](output/starry_night.png)
-![](input/shrek.jpg)  |  ![](output/shrek_small.png)
+![Van Gogh's 'Starry Night'](output/starry_night_small.png)
+![A still from 'Shrek'](output/shrek_small_small.png)
 
 ## Usage
 
