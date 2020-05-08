@@ -1,0 +1,19 @@
+{
+  "name": "emoji2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "saveImages.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "color-convert": "^2.0.1",
+    "fast-average-color": "^6.0.2",
+    "fluent-ffmpeg": "^2.1.2",
+    "rimraf": "^3.0.2",
+    "sharp": "^0.25.2",
+    "yargs": "^15.3.1"
+  }
+}
