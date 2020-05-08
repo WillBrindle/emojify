@@ -6,7 +6,7 @@ This project takes images/video input and gives you emojis out.
 
 Input             |  Output
 :-------------------------:|:-------------------------
-![](input/starry_night.jpg)  |  ![](output/starry_night_small.png)
+![](input/starry_night.jpg)  |  ![](output/starry_night.png)
 ![](input/shrek.jpg)  |  ![](output/shrek_small.png)
 
 ## Usage
