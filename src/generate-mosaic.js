@@ -107,7 +107,6 @@ const getEmojisForImage = async (img, targetWidth, lookupBuffer, emojiMap) => {
     await new Promise((resolve, reject) => {
       ffmpeg(inputImg)
         .output(`${FRAMES_FOLDER}/frame%05d.jpg`)
-        .fps(0.04)
         .on('error', (err) => {
           reject(err)
         })
